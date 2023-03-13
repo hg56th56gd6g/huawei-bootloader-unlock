@@ -8,7 +8,7 @@ windows xp及以上,小端序,32位
 
 ## 额外要求
 
-推荐64位
+推荐64位,32位会导致数据溢出
 
 # build.bat
 
@@ -26,9 +26,29 @@ https://dl.google.com/android/repository/platform-tools-latest-windows.zip
 
 # unlockhwbl.exe;unlockhwbl_upx.exe
 
-解锁程序,直接运行即可
+## 说明
 
-没有打印信息的时候说明正在解锁,不要关闭,从fastboot获取到解锁成功的信息后,会等待这一次的fastboot运行结束,此时才会打印信息,随后退出程序
+解锁程序,在程序所在目录打开命令行运行
+
+没有打印信息的时候说明正在解锁,不要关闭,从fastboot获取到解锁成功的信息后才会打印信息,等待这一次的fastboot运行结束后退出程序
+
+## 命令格式
+
+unlockhwbl.exe <[0123456789:;<=>?]*8 (管道缓冲区大小,DWORD,用48-63这16个字符表示的十六进制)>
+
+ps:只要最后8字符是这个16进制表示的DWORD值就行
+
+例如0x0fff1234(268374580)管道缓冲区大小(当然不建议实际用这么大的缓冲区,一般256~65536):
+
+unlockhwbl NoneNull0 hg56th56gd6g qweqweqwertyuiop[][][]":<DFS"0???1234
+
+或者:
+
+unlockhwbl.exe 0???1234
+
+为什么:
+
+第一个参数是可执行文件路径,由cmd解析,解锁程序会从右往左找8字符
 
 # code.dll
 
@@ -49,7 +69,7 @@ https://dl.google.com/android/repository/platform-tools-latest-windows.zip
 ### 1.
 
 ```c_cpp
-(void *) WINAPI CodeInit(void *);
+(void *) __fastcall CodeInit(void *);
 ```
 
 用于初始化一个code对象
@@ -67,7 +87,7 @@ https://dl.google.com/android/repository/platform-tools-latest-windows.zip
 ### 2.
 
 ```c_cpp
-(uint8_t) WINAPI UpdateCode(void *);
+(uint8_t) __fastcall UpdateCode(void *);
 ```
 
 用于更新解锁码
@@ -80,10 +100,10 @@ ps:不成功也包括没有可用于更新的解锁码了,例如已经加到9999
 
 发挥想象,比如可以在失败时将当前状态写入磁盘等
 
-### 3.(可选)
+### 3.
 
 ```c_cpp
-(void) WINAPI CodeExit(void *);
+(void) __fastcall CodeExit(void *);
 ```
 
 在退出(错误或完成等)时调用,可用于销毁储存状态的结构体等(发挥想象)
